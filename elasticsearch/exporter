@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: k8s-elastic-exporter
+  name: k8s-elastic-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-elastic-exporter
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: k8s-elastic-exporter
+    spec:
+      containers:
+      - command:
+        - /bin/elasticsearch_exporter
+        - -es.uri=https://es.openebs100.io  #Change the URL (if username password needs to be sent , send it as https://username:password@elasticsearch-url)
+        - -es.all=true
+        image: justwatch/elasticsearch_exporter:1.0.1
+        imagePullPolicy: IfNotPresent
+        name: k8s-elastic-exporter
+        ports:
+        - containerPort: 9108
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 25m
+            memory: 64Mi
+        securityContext:
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
